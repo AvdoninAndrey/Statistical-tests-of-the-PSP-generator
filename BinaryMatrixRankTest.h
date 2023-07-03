@@ -4,8 +4,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
-#include <numeric>
-
+#include <bitset>
 class BinaryMatrixRankTest
 {
 private:
@@ -15,7 +14,9 @@ private:
 	uint32_t countMatrix = 0;
 	uint16_t listCountRanksFm[3] = { 0 };
 
-	uint8_t getRankMatrix(std::vector<std::vector<uint8_t>> & binaryMatrixLittleEndian);
+	//uint8_t getRankMatrix(std::vector<std::vector<uint8_t>> & binaryMatrixLittleEndian);
+
+	uint8_t getRankBinaryMatrix(std::vector<std::vector<uint8_t>>& binaryMatrixLittleEndian);
 
 	std::vector<std::vector<uint8_t>> generationBinaryMatrixLittleEndian(uint32_t* bufferForReadBytes, uint16_t& modBits, const bool flag = true);
 
