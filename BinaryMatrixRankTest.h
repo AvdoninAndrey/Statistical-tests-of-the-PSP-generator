@@ -16,10 +16,9 @@ private:
 
 	//uint8_t getRankMatrix(std::vector<std::vector<uint8_t>> & binaryMatrixLittleEndian);
 
-	uint8_t getRankBinaryMatrix(std::vector<std::vector<uint8_t>>& binaryMatrixLittleEndian);
+	uint8_t getRankBinaryMatrix(std::vector<int32_t>& binaryMatrixLittleEndianRowsNumber);
 
-	std::vector<std::vector<uint8_t>> generationBinaryMatrixLittleEndian(uint32_t* bufferForReadBytes, uint16_t& modBits, const bool flag = true);
-
+	std::vector<int32_t> generationBinaryMatrixLittleEndianRowsNumber(uint32_t* bufferForReadBytes, uint16_t& modBits, const bool flag);
 	uint8_t tmpBitsMod = 0;
 
 	void calcListCountRanks(uint16_t* listCountRanksFm, const uint8_t& valueRank);

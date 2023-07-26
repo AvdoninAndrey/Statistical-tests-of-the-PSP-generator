@@ -17,7 +17,7 @@ MaurerUniversalStatisticalTest::MaurerUniversalStatisticalTest(const std::string
 
 uint32_t* MaurerUniversalStatisticalTest::createTemplateTable(const uint8_t& sizeL)
 {
-	uint32_t countElements = pow(2, sizeL);
+	uint32_t countElements = static_cast<uint16_t>(pow(2, sizeL));
 	uint32_t* templateTable = new uint32_t[countElements]{ 0 };
 	return templateTable;
 }
@@ -87,6 +87,7 @@ void MaurerUniversalStatisticalTest::calcInitializationOrTestSegment(uint64_t* r
 {
 	uint32_t tmpCurrentBlock = currentBlock - 8;
 	convertToLittleEndianFormat(readBytes, sizeL);
+	int count = 0;
 	if (sizeL <= 8)
 	{
 		for (int i = sizeof(uint64_t) * 8 - ((8 - sizeL) * 8) - sizeL; i >= 0; i -= sizeL)
@@ -146,7 +147,6 @@ void MaurerUniversalStatisticalTest::calcFinalTestSegment(uint64_t* readBytes, u
 	convertToLittleEndianFormat(readBytes, sizeL);
 
 	uint32_t tmpCurrentBlock = currentBlock - (modBits / sizeL);
-	//std::cout << tmpCurrentBlock << std::endl;
 	if (sizeL <= 8)
 	{
 		int flagEnd = sizeof(uint64_t) * 8 - ((8 - sizeL) * 8) - modBits;
@@ -190,10 +190,10 @@ double MaurerUniversalStatisticalTest::getPValue(const double& valueFn, const ui
 	std::cout << "Value Fn = " << valueFn << std::endl;
 	const double L = static_cast<double>(sizeL), K = static_cast<double>(countKBlocks);
 	const double valueC = 0.7 - (0.8 / L) + ((4.0 + 32.0 / L) * (pow(K, -3.0 / L)) / 15.0);
-	const double valueSigma = valueC * sqrt(ERFC_FUNCTION_PARAMETERS[sizeL - 4].second / K);
+	const double valueSigma = valueC * sqrt(ERFC_FUNCTION_PARAMETERS[sizeL - 3].second / K);
 	std::cout << "Value c = " << valueC << std::endl;
 	std::cout << "Value sigma = " << valueSigma << std::endl;
-	return double(erfc(abs((valueFn - ERFC_FUNCTION_PARAMETERS[sizeL - 4].first) / (sqrt(2) * valueSigma))));
+	return double(erfc(abs((valueFn - ERFC_FUNCTION_PARAMETERS[sizeL - 3].first) / (sqrt(2) * valueSigma))));
 }
 
 
@@ -208,12 +208,12 @@ void MaurerUniversalStatisticalTest::getResultMaurerUniversalStatisticalTest()
 	uint32_t countQBlocks = 10 * static_cast<uint32_t>(pow(2, sizeL));
 	uint32_t countKBlocks = floor(static_cast<double>(countBitsInFile) / static_cast<double>(sizeL)) - countQBlocks;
 
-
 	file.seekg(0, std::ios::beg);
 
 	uint32_t* templateTable = createTemplateTable(sizeL);
 
 	uint32_t modBytes = (countBitsInFile / 8) % sizeL;
+
 
 	uint32_t countBitsForStatistics = countQBlocks * sizeL + countKBlocks * sizeL;
 	uint32_t flagCountReadBits = 0;;
@@ -244,11 +244,11 @@ void MaurerUniversalStatisticalTest::getResultMaurerUniversalStatisticalTest()
 			flagCountReadBits += static_cast<uint16_t>(floor(modBits / sizeL) * sizeL);
 			continue;
 		}
+
 		(currentBlock - 8) <= countQBlocks ? calcInitializationOrTestSegment(bufferForReadBytes, templateTable, sizeL, currentBlock, false, sum) :
 			calcInitializationOrTestSegment(bufferForReadBytes, templateTable, sizeL, currentBlock, true, sum);
 		delete[] bufferForReadBytes;
 	}
-
 	file.close();
 	delete[] templateTable;
 

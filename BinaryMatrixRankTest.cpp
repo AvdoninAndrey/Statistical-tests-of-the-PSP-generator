@@ -17,18 +17,19 @@ BinaryMatrixRankTest::BinaryMatrixRankTest(const std::string& filePath, const ui
 	this->Q = Q;
 	this->maximumPossibleRank = std::min(this->M, this->Q);
 }
-std::vector<std::vector<uint8_t>> BinaryMatrixRankTest::generationBinaryMatrixLittleEndian(uint32_t* bufferForReadBytes, uint16_t& modBits, const bool flag)
+
+std::vector<int32_t> BinaryMatrixRankTest::generationBinaryMatrixLittleEndianRowsNumber(uint32_t* bufferForReadBytes, uint16_t& modBits, const bool flag)
 {
-	std::vector<std::vector<uint8_t>> binaryMatrixLittleEndian(this->M);
+	std::vector<int32_t> rowsMatrixNum(this->M, 0);
+
 	int indexBuffer = 0, shift = 32, counterIterations = (this->M * this->Q) - modBits, counter = 0;
 	int i;
 	if (flag == false && modBits != 0)
 	{
-		for (int k = 0 , l = modBits; k < 8 - modBits; ++k, --l)
+		for (int k = 0; k < 8 - modBits; ++k)
 		{
-			binaryMatrixLittleEndian[0].push_back(this->tmpBitsMod & 0x1);
+			rowsMatrixNum[0] = (rowsMatrixNum[0] << 1) | (this->tmpBitsMod & 0x1);
 			this->tmpBitsMod >>= 1;
-			//binaryMatrixLittleEndian[0].push_back((this->tmpBitsMod >> l) & 0x1);
 		}
 	}
 	for (i = 0; i < M; ++i)
@@ -48,8 +49,8 @@ std::vector<std::vector<uint8_t>> BinaryMatrixRankTest::generationBinaryMatrixLi
 				flagEnd = true;
 				break;
 			}
-			binaryMatrixLittleEndian[i].push_back(bufferForReadBytes[indexBuffer] & 0x1);
-			//binaryMatrixLittleEndian[i].push_back((bufferForReadBytes[indexBuffer] >> shift) & 0x1);
+			rowsMatrixNum[i] = (rowsMatrixNum[i] << 1) | (bufferForReadBytes[indexBuffer] & 0x1);
+		
 			counter++;
 			--shift;
 			if (shift == 0)
@@ -68,105 +69,48 @@ std::vector<std::vector<uint8_t>> BinaryMatrixRankTest::generationBinaryMatrixLi
 
 	if (flag == true)
 	{
-		for (int k = counter, l = 7; k < (this->M * this->Q); ++k, --l)
+		for (int k = counter; k < (this->M * this->Q); ++k)
 		{
-			binaryMatrixLittleEndian[i].push_back(this->tmpBitsMod & 0x1);
+			rowsMatrixNum[i] = (rowsMatrixNum[i] << 1) | (this->tmpBitsMod & 0x1);
 			this->tmpBitsMod >>= 1;
-			//binaryMatrixLittleEndian[0].push_back((this->tmpBitsMod >> l) & 0x1);
 		}
 	}
-	/*std::cout << "matrix" << std::endl;
-	for (i = 0; i < M; ++i)
-	{
-		std::cout << "[ ";
-		for (int j = 0; j < Q; ++j)
-		{
-			if (j == Q - 1)
-			{
-				std::cout << (int)binaryMatrixLittleEndian[i][j] << "";
-			}
-			else
-			{
-				std::cout << (int)binaryMatrixLittleEndian[i][j] << ",";
-			}
 
-		}
-		std::cout << "], "  << std::endl;
-	}*/
-	return binaryMatrixLittleEndian;
+	for (size_t i = 0; i < rowsMatrixNum.size(); ++i)
+	{
+		std::bitset<32> a(rowsMatrixNum[i]);
+		std::cout << a.to_string() << std::endl;
+		//std::cout << rowsMatrixNum[i] << std::endl;
+	}
+
+	return rowsMatrixNum;
 }
 
-uint8_t BinaryMatrixRankTest::getRankBinaryMatrix(std::vector<std::vector<uint8_t>>& binaryMatrixLittleEndian)
+
+uint8_t BinaryMatrixRankTest::getRankBinaryMatrix(std::vector<int32_t> & binaryMatrixLittleEndianRowsNumber)
 {
-	std::vector<int> rowsValuesNum (this->M, 0);
-	for (int i = 0; i < binaryMatrixLittleEndian[0].size(); ++i)
-	{
-		char tmpBit;
-		for (int j = 0; j < binaryMatrixLittleEndian[0].size(); ++j) {
-			tmpBit = static_cast<char>(binaryMatrixLittleEndian[i][j]);
-			rowsValuesNum[i] = (rowsValuesNum[i] << 1) | tmpBit;
-		}
-	}
 	uint8_t rank = 0;
-	while (!rowsValuesNum.empty())
+	while (!binaryMatrixLittleEndianRowsNumber.empty())
 	{
-		int pivotRow = rowsValuesNum.back();
-		rowsValuesNum.pop_back();
+		int32_t pivotRow = binaryMatrixLittleEndianRowsNumber.back();
+		binaryMatrixLittleEndianRowsNumber.pop_back();
 		if (pivotRow)
 		{
 			++rank;
-			int lsb = pivotRow & -pivotRow;
-			for (size_t index = 0; index < rowsValuesNum.size(); ++index)
+			int32_t lsb = pivotRow & -pivotRow;
+			for (size_t index = 0; index < binaryMatrixLittleEndianRowsNumber.size(); ++index)
 			{
-				int32_t row = rowsValuesNum[index];
+				int32_t row = binaryMatrixLittleEndianRowsNumber[index];
 				if (row & lsb)
 				{
-					rowsValuesNum[index] = row ^ pivotRow;
+					binaryMatrixLittleEndianRowsNumber[index] = row ^ pivotRow;
 				}
 			}
 		}
 	}
-	//std::cout << "Rank Matrix = " << (int)rank <<  std::endl;
 	return rank;
 }
-//uint8_t BinaryMatrixRankTest::getRankMatrix(std::vector<std::vector<uint8_t>>& binaryMatrixLittleEndian)
-//{
-//	int n = binaryMatrixLittleEndian[0].size();
-//	uint8_t rank = 0;
-//	for (int col = 0; col < n; col++)
-//	{
-//		int j = 0;
-//		std::vector<int> rows;
-//		while (j < binaryMatrixLittleEndian.size())
-//		{
-//			if (binaryMatrixLittleEndian[j][col] == 1)
-//			{
-//				rows.push_back(j);
-//			}
-//			j++;
-//		}
-//		if (rows.size() >= 1)
-//		{
-//			for (int c = 1; c < rows.size(); c++)
-//			{
-//				for (int k = 0; k < n; k++)
-//				{
-//					binaryMatrixLittleEndian[rows[c]][k] ^=  binaryMatrixLittleEndian[rows[0]][k];
-//				}
-//			}
-//			binaryMatrixLittleEndian.erase(binaryMatrixLittleEndian.begin() + rows[0]);
-//			rank++;
-//		}
-//	}
-//	for (auto& row : binaryMatrixLittleEndian)
-//	{
-//		if (std::accumulate(row.begin(), row.end(), 0) > 0)
-//		{
-//			rank++;
-//		}
-//	}
-//	return rank;
-//}
+
 
 void BinaryMatrixRankTest::calcListCountRanks(uint16_t* listCountRanksFm, const uint8_t& valueRank)
 {
@@ -210,42 +154,37 @@ void BinaryMatrixRankTest::getResultBinaryMatrixRankTest()
 	}
 
 	uint32_t countBitsForStatistics = this->countMatrix * (M * Q);
-
 	file.seekg(0, std::ios::beg);
 
 	uint32_t flagCountReadBits = 0;
-	uint16_t flagCountReadBytes = floor(M * Q / 8), modBits = (M * Q) - flagCountReadBytes * 8; // 12 байт и 4 бита будет остаток при 10
-	//112 (896 бит) байт и 4 бита остаток
-
+	uint16_t flagCountReadBytes = floor(M * Q / 8), modBits = (M * Q) - flagCountReadBytes * 8; 
+	
 	uint32_t currentIterations = 0;
 	while (flagCountReadBits != countBitsForStatistics)
 	{
 		uint32_t* bufferForReadBytes = new uint32_t[static_cast<uint16_t>(flagCountReadBytes / 4)];
 		file.read(reinterpret_cast<char*>(bufferForReadBytes), static_cast<uint16_t>(flagCountReadBytes));
 		uint8_t tmpBits = 0;
-		if (modBits > 0 && currentIterations % 2 == 0)
+		if (modBits > 0 && currentIterations == 0)
 		{
 			file.read(reinterpret_cast<char*>(&tmpBits), 1);
 			this->tmpBitsMod = tmpBits;
 		}
 
-		std::vector<std::vector<uint8_t>> binaryMatrixLittleEndian;
+		std::vector<int32_t> binaryMatrixLittleEndianRowsNumber;
 		if (modBits > 0 && currentIterations % 2 == 0)
 		{
-			binaryMatrixLittleEndian = generationBinaryMatrixLittleEndian(bufferForReadBytes, modBits, true);
+			binaryMatrixLittleEndianRowsNumber = generationBinaryMatrixLittleEndianRowsNumber(bufferForReadBytes, modBits, true);
 		}
 		else
 		{
-			binaryMatrixLittleEndian = generationBinaryMatrixLittleEndian(bufferForReadBytes, modBits, false);
-			//rank(binaryMatrixLittleEndian);
+			binaryMatrixLittleEndianRowsNumber = generationBinaryMatrixLittleEndianRowsNumber(bufferForReadBytes, modBits, true);
 		}
-		uint8_t rankMatrix = getRankBinaryMatrix(binaryMatrixLittleEndian);
+		uint8_t rankMatrix = getRankBinaryMatrix(binaryMatrixLittleEndianRowsNumber);
 		calcListCountRanks(listCountRanksFm, rankMatrix);
 
 		++currentIterations;
-		//uint8_t rankMatrix = getRankMatrix(binaryMatrixLittleEndian);
-		//calcListCountRanks(listCountRanksFm, rankMatrix);
-
+	
 		delete[] bufferForReadBytes;
 		flagCountReadBits += flagCountReadBytes * 8 + modBits;
 	}

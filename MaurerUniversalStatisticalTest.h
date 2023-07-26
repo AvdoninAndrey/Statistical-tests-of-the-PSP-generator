@@ -7,9 +7,10 @@
 class MaurerUniversalStatisticalTest
 {
 private:
-	const uint8_t COUNT_OF_RANGES_USED = 7;
-	const std::pair<uint32_t, uint8_t> SOURCE_PARAMETERS[7] = {
-		{ 999 ,4},
+	const uint8_t COUNT_OF_RANGES_USED = 8;
+	const std::pair<uint32_t, uint8_t> SOURCE_PARAMETERS[8] = {
+		{ 999 ,3},
+		{10000, 4},
 		{ 100000 ,6},
 		{ 387840, 6 },
 		{ 904960, 7 },
@@ -17,8 +18,9 @@ private:
 		{ 4654080, 9 },
 		{ 10342400, 10 },
 	};
-	const std::pair<double, double> ERFC_FUNCTION_PARAMETERS[7] = {
-		{ 3.3112247, 2.358},
+	const std::pair<double, double> ERFC_FUNCTION_PARAMETERS[8] = {
+		  {2.401, 1.901},
+		 { 3.3112247, 2.358},
 		{ 4.2534266, 2.704},
 		{ 5.2177052, 2.954 },
 		{ 6.1962507, 3.125 },

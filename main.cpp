@@ -8,7 +8,7 @@ int main()
 	{
 		tests.executeBinaryMatrixRankTest();
 	}
-	catch (const std::invalid_argument &error)
+	catch (const std::invalid_argument& error)
 	{
 		std::cout << "Binary Matrix Rank Test error" << std::endl;
 		std::cout << "Description: " << error.what() << std::endl;
